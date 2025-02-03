@@ -1,6 +1,5 @@
 ---
 cssclasses:
-  - center-titles
   - image-border
 tags:
   - aws-review
@@ -32,6 +31,7 @@ AWS CodePipeline is a service for automating software release pipelines. Here's 
     
     - Triggers can be configured to include or exclude specific branches, tags, or file paths.
 
+---
 
 An **AppSpec file** is a YAML- or JSON-formatted file used by AWS CodeDeploy to manage deployments as a series of lifecycle event hooks. The content of the AppSpec file varies depending on the compute platform being used.
 
@@ -58,3 +58,114 @@ In all cases, the **target revision** is the most recent version of the applicat
 The AppSpec file uses **lifecycle event hooks** to manage each deployment.
 
 You can use the CodeDeploy console or the `create-deployment` command to deploy the function revision specified in the AppSpec file to the deployment group.
+
+---
+
+# EVENTS vs WEBHOOKS VS POLLING
+
+### EVENTS
+![[Pasted image 20250203095505.png]]
+
+### WEBHOOKS
+![[Pasted image 20250203095528.png]]
+
+### POLLING:
+![[Pasted image 20250203095536.png]]
+
+---
+
+# ACTION TYPES CONSTRAINT FOR ARTIFACTS
+
+### OWNER
+- AWS - AWS SERVICE
+- 3RD PARTY - GITHUB
+- CUSTOM - JENKINS
+### ACTION TYPE
+- SOURCE
+- BUILD
+- TEST
+- APPROVAL
+- INVOKE
+- DEPLOY
+![[Pasted image 20250203095757.png]]
+
+---
+# CODEPIPELINE - MANUAL APPROVAL STAGE
+
+![[Pasted image 20250203095905.png]]
+
+---
+
+# CODEPIPELINE - CLOUDFORMATION AS A TARGET
+
+
+![[Pasted image 20250203100238.png]]
+
+
+- **CloudFormation Deploy Action**: Used to deploy AWS resources automatically
+    - Example: Deploy Lambda Functions using tools like CDK or SAM
+- **Works with CloudFormation StackSets**: Can deploy across multiple AWS accounts and regions at once
+- **Configurable Settings**:
+    - **Stack Name**: Name for the CloudFormation stack
+    - **Change Set Name**: Name for any changes applied to the stack
+    - **Template**: The CloudFormation template defining the resources
+    - **Parameters**: Values that can customize the stack
+    - **IAM Role**: Defines permissions for CloudFormation to act
+    - **Action Mode**: Specifies how the stack should be handled
+
+### WHAT AND IMPORTANCE OF CLOUDFORMATION
+
+- **Infrastructure as Code (IaC)**: Automates the setup of AWS resources
+    - Makes it easy to recreate and track infrastructure changes
+- **Consistency and Standardization**: Ensures the same setup every time
+    - Reduces the risk of errors from manual configuration
+- **Stack Management**: Groups related AWS resources together
+    - Simplifies creation, updates, or deletion of resources
+- **Integration with DevOps Pipelines**: Automates deployment and testing processes
+    - Easily works with tools like CodePipeline and CodeBuild
+
+### ACTION MODES IN CLOUDFORMATION
+
+- **CREATE/REPLACE A CHANGE SET**: Propose and apply changes to a stack
+- **EXECUTE A CHANGE SET**: Apply the proposed changes
+- **CREATE/UPDATE A STACK**: Set up or update a collection of AWS resources
+- **DELETE A STACK**: Remove the stack and all its resources
+- **REPLACE A FAILED STACK**: Replace a stack that encountered an error during creation or update
+
+### TEMPLATE PARAMETER OVERRIDES
+
+- **Specify JSON**: Use a JSON file to modify parameter values
+- **Retrieve from CodePipeline Input Artifact**: Automatically fetch parameter values from the pipeline
+- **Parameter Names Must Be Present**: All expected parameters must be defined
+- **Static Parameters**: Use fixed values defined in the template
+- **Dynamic Parameters**: Override values at runtime using parameter overrides
+
+# CLOUDFORMATION INTEGRATION
+
+![[Pasted image 20250203100605.png]]
+
+### EXPLANATION OF SAMPLE FLOW
+
+- **CODEBUILD (BUILDAPP)**:
+    
+    - Builds the application code
+    - Compiles and packages artifacts for deployment
+- **CLOUDFORMATION (DEPLOY INFRA AND APP)**:
+    
+    - **Create/Update CloudFormation Stack**: Deploys infrastructure (e.g., ALB with Auto Scaling Group of EC2 instances)
+    - Creates or updates AWS resources based on CloudFormation template
+- **CODEBUILD TEST AGAINST THE STACK**:
+    
+    - Tests the application against the deployed stack
+    - Validates if the infrastructure and application are functioning as expected
+- **IF WORKING**:
+    
+    - Proceed with the next steps if the tests pass
+- **DELETE TEST INFRA**:
+    
+    - Deletes temporary infrastructure used for testing purposes to avoid unnecessary costs
+- **DEPLOY PROD INFRA (CREATE/UPDATE CLOUDFORMATION STACK)**:
+    
+    - Deploys or updates production infrastructure using CloudFormation
+    - Ensures that the infrastructure is ready for live application use
+
