@@ -3,9 +3,9 @@ name: Deploy to Elastic Beanstalk
 on:
   push:
     paths:
-      - '../01-elastic-beanstalk-workflow/helloworld_test.js'
+      - 'Codes/01-elastic-beanstalk-workflow/helloworld_test.js'  # Correct path relative to the repository root
     branches:
-      - main 
+      - test  # Change from "main" to "test"
 
 jobs:
   deploy:
@@ -17,8 +17,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
 
+      - name: Change directory to Terraform workspace
+        run: cd Codes/01-elastic-beanstalk-workflow
+
       - name: Initialize Terraform
         run: terraform init
+        working-directory: Codes/01-elastic-beanstalk-workflow
 
       - name: Apply Terraform
         run: terraform apply -auto-approve
+        working-directory: Codes/01-elastic-beanstalk-workflow
