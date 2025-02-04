@@ -1,0 +1,37 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  pull_request:
+    branches:
+      - main
+  # push:
+  #   paths:
+  #     - 'Codes/01-elastic-beanstalk-workflow/helloworld_test.js'  # Correct path relative to the repository root
+  #   branches:
+  #     - test  # Change from "main" to "test"
+
+jobs:
+  if_merged:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    
+    # use terraform destroy to remove the Elastic Beanstalk environment
+    destroy: # this is the job name
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v1
+
+        - name: Change directory to Terraform workspace
+          run: cd Codes/01-elastic-beanstalk-workflow
+
+        - name: Initialize Terraform
+          run: terraform init
+          working-directory: Codes/01-elastic-beanstalk-workflow
+
+        - name: Destroy Terraform
+          run: terraform destroy -auto-approve
+          working-directory: Codes/01-elastic-beanstalk-workflow
+
